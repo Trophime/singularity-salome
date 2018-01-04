@@ -10,6 +10,7 @@ exec echo "The runscript is the containers default runtime command!"
         echo "Hrmm, this container does not have /bin/sh installed..."
         exit 1
     fi
+    # place to perform checks on docker images
     # mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
     # mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin
     # cp /opt/DISTENE/Tools/bin/dlim8.var.sh                               $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin/
@@ -33,6 +34,7 @@ AUTHOR christophe.trophime@lncmi.cnrs.fr
 
 # create repositories
 mkdir -p /scratch /tmp /home /mnt
+mkdir -p /opt/DISTENE/DLim
 
 # # To add Debian/Ubuntu Lncmi repository
 # apt-get update && apt-get -y install gnupg2
@@ -65,3 +67,5 @@ apt-get -y install dapl2-utils \
 
 
 mkdir -p /feel
+
+singularite -B host_mounted:container_mounted

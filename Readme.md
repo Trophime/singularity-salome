@@ -1,4 +1,4 @@
-= To create singularity image from Docker:
+= To create singularity image from Docker Official Salome images:
 
 Supported Versions: `7.8.0` to `8.4.0`
 Supported Graphic card: `nvidia`, `intelhd`
@@ -7,8 +7,8 @@ Supported Graphic card: `nvidia`, `intelhd`
 
 ```
 DIST=$(docker run -it --rm trophime/salome-$VERSION:$TAG lsb_release -cs)
-sudo singularity create --size 6144 ./salome-$VERSION-$DIST-$TAG.img
-sudo singularity --verbose import ./salome-$VERSION-$DIST-$TAG.img docker://trophime/salome-$VERSION:$TAG
+sudo singularity create --size 6144 ./salome-$VERSION-$DIST-$TAG.simg
+sudo singularity --verbose import ./salome-$VERSION-$DIST-$TAG.simg docker://trophime/salome-$VERSION:$TAG
 ```
 
 where `VERSION` and `TAG` respectively stand for Salome version and graphics driver.
@@ -17,7 +17,7 @@ where `VERSION` and `TAG` respectively stand for Salome version and graphics dri
 
 ```
 DIST=$(docker run -it --rm trophime/salome-$VERSION:$TAG lsb_release -cs)
-sudo -E singularity -vvv build --force --notest [--writable] "./salome-$VERSION-$DIST-$TAG.img" "./salome-docker.def"
+sudo -E singularity -vvv build --force --notest [--writable] "./salome-$VERSION-$DIST-$TAG.simg" "./salome-docker.def"
 ```
 
 = Upload singularity image:
@@ -26,11 +26,11 @@ sudo -E singularity -vvv build --force --notest [--writable] "./salome-$VERSION-
 = Running singularity
 
 ```
-singularity shell [--nv] "./salome-$VERSION-$DIST-$TAG.img"
+singularity shell [--nv] "./salome-$VERSION-$DIST-$TAG.simg"
 ```
 
 ```
-singularity run [--nv] "./salome-$VERSION-$DIST-$TAG.img"
+singularity run [--nv] "./salome-$VERSION-$DIST-$TAG.simg"
 ```
 
 `--nv` option is only valid for 2.4.1 and later.
