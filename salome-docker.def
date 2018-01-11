@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: trophime/salome-8.3.0:nvidia
+From: feelpp/salome:mpi-stretch-nvidia
 
 %runscript
 exec echo "The runscript is the containers default runtime command!"
@@ -35,6 +35,7 @@ AUTHOR christophe.trophime@lncmi.cnrs.fr
 # create repositories
 mkdir -p /scratch /tmp /home /mnt
 mkdir -p /opt/DISTENE/DLim
+mkdir -p /feel
 
 # # To add Debian/Ubuntu Lncmi repository
 # apt-get update && apt-get -y install gnupg2
@@ -62,10 +63,6 @@ apt-get -y install dapl2-utils \
                    libmlx5-1 \
                    libmthca1 \
                    libnes1 \
-                   libpmi0 \
-                   libslurm-dev
+                   libpmi0
 
-
-mkdir -p /feel
-
-singularite -B host_mounted:container_mounted
+# singularity -B host_mounted:container_mounted
