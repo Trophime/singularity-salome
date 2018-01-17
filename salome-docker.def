@@ -23,9 +23,10 @@ exit 0
 
 %environment
 
-FEELPP_REPOSITORY=/feel
-export FEELPP_REPOSITORY
-export DISTENE_LICENSE_FILE=${HOME}/dlim8.key 
+export FEELPP_REPOSITORY=/feel
+export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key 
+export LD_LIBRARY_PATH=/usr/lib/paraview/:$LD_LIBRARY_PATH
+export PATH=/opt/SALOME-8.3.0-MPI-DB9.3/:$PATH
 
 %labels
 AUTHOR christophe.trophime@lncmi.cnrs.fr

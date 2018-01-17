@@ -3,6 +3,8 @@
 Supported Versions: `7.8.0` to `8.4.0`
 Supported Graphic card: `nvidia`, `intelhd`
 
+Required nvidia-smi to be installed onhost
+
 * for 2.3.1 version:
 
 ```
