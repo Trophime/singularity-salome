@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: feelpp/salome:mpi-stretch-nvidia
+From: feelpp/salome:8.3.0-nvidia
 
 %runscript
 exec echo "The runscript is the containers default runtime command!"
@@ -38,6 +38,8 @@ mkdir -p /scratch /tmp /home /mnt
 mkdir -p /opt/DISTENE/DLim
 mkdir -p /feel
 
+export LANG=C
+
 # # To add Debian/Ubuntu Lncmi repository
 # apt-get update && apt-get -y install gnupg2
 # gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv 535D3508
@@ -66,4 +68,11 @@ apt-get -y install dapl2-utils \
                    libnes1 \
                    libpmi0
 
-# singularity -B host_mounted:container_mounted
+# Install Vglrun
+wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
+apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
+dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+
+# Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
+chmod u+s /usr/lib/libvglfaker.so
+chmod u+s /usr/lib/libdlfaker.so
