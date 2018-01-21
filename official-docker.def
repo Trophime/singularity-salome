@@ -1,0 +1,74 @@
+Bootstrap: docker
+From: trophime/salome-8.3.0:nvidia
+
+%runscript
+exec echo "The runscript is the containers default runtime command!"
+
+%setup
+    echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
+    if [ ! -x "$SINGULARITY_ROOTFS/bin/sh" ]; then
+        echo "Hrmm, this container does not have /bin/sh installed..."
+        exit 1
+    fi
+    # place to perform checks on docker images
+    # mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
+    # mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin
+    # cp /opt/DISTENE/Tools/bin/dlim8.var.sh                               $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin/
+    # cp /opt/DISTENE/Tools/bin/dlim8.var.csh                              $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin/
+    # cp /opt/DISTENE/DLim/dlim8.key                                       $SINGULARITY_ROOTFS/opt/DISTENE/DLim/
+    # cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-UB16.10.tgz $SINGULARITY_ROOTFS/opt/
+
+exit 0
+
+
+%environment
+
+export FEELPP_REPOSITORY=/feel
+export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
+
+%labels
+AUTHOR christophe.trophime@lncmi.cnrs.fr
+
+%post
+
+# create repositories
+mkdir -p /scratch /tmp /home /mnt
+mkdir -p /opt/DISTENE/DLim
+mkdir -p /feel
+
+# # To add Debian/Ubuntu Lncmi repository
+# apt-get update && apt-get -y install gnupg2
+# gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv 535D3508
+# gpg --export --armor 535D3508 | apt-key add -
+# echo "deb http://euler/~trophime/debian/ xenial main" >  /etc/apt/sources.list.d/lncmi.list
+
+# firefox-esr on Debian 
+apt-get update
+apt-get -y install lsb-release \
+           iceweasel \
+           iputils-ping net-tools \
+         python-simplejson jsonlint \
+         python-yaml yamllint
+
+# To use on Cluster with InfinyBand and Slurm
+# !!! Watch out depends on Release !!!
+apt-get -y install dapl2-utils \
+                   libdapl2 \
+                   libibverbs1 \
+                   librdmacm1 \
+                   libcxgb3-1 \
+                   libipathverbs1 \
+                   libmlx4-1 \
+                   libmlx5-1 \
+                   libmthca1 \
+                   libnes1 \
+                   libpmi0
+                   
+# Install Vglrun
+wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
+apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
+dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+
+# Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
+chmod u+s /usr/lib/libvglfaker.so
+chmod u+s /usr/lib/libdlfaker.so
