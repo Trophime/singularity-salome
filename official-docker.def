@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: trophime/salome-8.3.0:nvidia
+From: ubuntu:xenial
 
 %runscript
 exec echo "The runscript is the containers default runtime command!"
@@ -10,19 +10,12 @@ exec echo "The runscript is the containers default runtime command!"
         echo "Hrmm, this container does not have /bin/sh installed..."
         exit 1
     fi
-    # place to perform checks on docker images
-    # mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
-    # mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin
-    # cp /opt/DISTENE/Tools/bin/dlim8.var.sh                               $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin/
-    # cp /opt/DISTENE/Tools/bin/dlim8.var.csh                              $SINGULARITY_ROOTFS/opt/DISTENE/Tools/bin/
-    # cp /opt/DISTENE/DLim/dlim8.key                                       $SINGULARITY_ROOTFS/opt/DISTENE/DLim/
-    # cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-UB16.10.tgz $SINGULARITY_ROOTFS/opt/
 
 exit 0
 
 
 %environment
-
+# export PATH=/opt/salome/...
 export FEELPP_REPOSITORY=/feel
 export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
 
@@ -49,6 +42,17 @@ apt-get -y install lsb-release \
            iputils-ping net-tools \
          python-simplejson jsonlint \
          python-yaml yamllint
+
+apt-get install nvidia-driver nvidia-smi
+
+# Install Salome
+wget --http-user ${HTTP_USER} --http-password ${HTTP_PASSWD} \
+       -O /tmp/Salome-public.run \
+       "http://www.salome-platform.org/downloads/current-version/DownloadDistr?platform=UniBinNew2&version=${VERSION}_64bit"
+mkdir -p /opt/
+cd /opt
+sh /tmp/Salome-public.run -t /opt/salome -d
+rm /tmp/Salome-public.run
 
 # To use on Cluster with InfinyBand and Slurm
 # !!! Watch out depends on Release !!!
