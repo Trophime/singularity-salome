@@ -1,28 +1,27 @@
 Bootstrap: docker
-From: debian:stretch
+From: debian:buster
 
 %runscript
-
 exec echo "The runscript is the containers default runtime command!"
 
 %setup
-    echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
-    if [ ! -x "$SINGULARITY_ROOTFS/bin/sh" ]; then
-        echo "Hrmm, this container does not have /bin/sh installed..."
-        exit 1
-    fi
-    mkdir -p $SINGULARITY_ROOTFS/opt
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-DB9.3.tgz $SINGULARITY_ROOTFS/opt/
-    # mkdir -p $SINGULARITY_ROOTFS/tmp
-    # cp /home/LNCMI-G/trophime/feelpp/research/hifimagnet/singularity/ensight/virtualgl_2.5.2_amd64.deb $SINGULARITY_ROOTFS/tmp/
-
+echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
+if [ ! -x "$SINGULARITY_ROOTFS/bin/sh" ]; then
+   echo "Hrmm, this container does not have /bin/sh installed..."
+   exit 1
+fi
+# prepare for MeshGems
+mkdir -p $SINGULARITY_ROOTFS/opt
+mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Dlim
+# get Salome custom tarball
+cp //home/LNCMI-G/trophime/Salome_Packages/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz $SINGULARITY_ROOTFS/opt/
 exit 0
 
 
 %environment
 CASROOT=/usr
 LD_LIBRARY_PATH=/usr/lib/paraview:$LD_LIBRARY_PATH
-PATH=/opt/SALOME-8.3.0-MPI-DB9.3:$PATH
+PATH=/opt/SALOME-8.4.0-LNCMI-MPI-DBtesting:$PATH
 export CASROOT
 export LD_LIBRARY_PATH
 export PATH
@@ -39,24 +38,17 @@ export LANG=C
 mkdir -p /feel
 mkdir -p /scratch /tmp
 
-# Add contrib and non-free section (should check if updates and backports exist)
-echo "deb http://ftp.debian.org/debian stable-updates main" >> /etc/apt/sources.list
-echo "deb http://ftp.debian.org/debian stable-backports main" >> /etc/apt/sources.list
-sed -i'.bak' 's/$/ contrib non-free/' /etc/apt/sources.list
-
 # Add Debian/Ubuntu Lncmi repository (should check if depot is accessible)
 apt-get update
 apt-get -y install gnupg2  
 gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv 535D3508
 gpg --export --armor 535D3508 | apt-key add -
-echo "deb http://euler/~trophime/debian/ stretch main" >  /etc/apt/sources.list.d/lncmi.list
+echo "deb http://euler/~trophime/debian/ buster main" >  /etc/apt/sources.list.d/lncmi.list
 
 apt-get update
 apt-get -y upgrade
 apt-get -y install emacs vim nano \
-   lshw lsb-release bash-completion \
-   kmod iputils-ping net-tools \
-   wget curl
+   bash-completion wget curl
 
 apt-get install -y \
    firefox-esr \
@@ -65,49 +57,37 @@ apt-get install -y \
    paraview-python \
    netgen libnglib-5.3.1 \
    gmsh-tetgen libpastix-dev \
-   libqwt-qt5-6 \
-   libopencascade-visualization-dev libopencascade-ocaf-dev \
+   libopencascade-foundation-7.2.0 libopencascade-ocaf-7.2.0 libopencascade-visualization-7.2.0 libopencascade-ocaf-7.2.0 libopencascade-ocaf-lite-7.2.0  \
    libqt5xml5 libqt5test5 libqt5sensors5 libqt5positioning5 libqt5multimediawidgets5 libqt5webengine5 libqt5webenginewidgets5 \
-   libboost-filesystem1.62.0 libboost-regex1.62.0 libboost-signals1.62.0 libboost-thread1.62.0 libboost-date-time1.62.0 libboost-chrono1.62.0 libboost-atomic1.62.0 \
+   libqwt-qt5-6 \
    python-sip python-pyqt5 \
+   libboost-filesystem1.62.0 libboost-regex1.62.0 libboost-signals1.62.0 libboost-thread1.62.0 libboost-date-time1.62.0 libboost-chrono1.62.0 libboost-atomic1.62.0 \
    graphviz \
    valgrind \
    python-psutil 
 
-apt-get -y install nvidia-driver nvidia-smi
+# # Installing Graphic driver
+# sed -i'.bak' 's/$/ contrib non-free/' /etc/apt/sources.list
+# apt-get update
+# apt-get -y install nvidia-driver nvidia-smi
 
-wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
+# Installing VirtaulGl for noVNC
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
+wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+rm -f /tmp/virtualgl_2.5.2_amd64.deb
 
-# Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
-chmod u+s /usr/lib/libvglfaker.so
-chmod u+s /usr/lib/libdlfaker.so
+# # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
+# chmod u+s /usr/lib/libvglfaker.so
+# chmod u+s /usr/lib/libdlfaker.so
 
-# apt-get -y install clang-4.0 python2.7-dev \
-# 	       git \
-#            magnettools libmagnettools hifimagnet \
-#            libfeel++1 feel++-toolbox feel++-toolbox-solid
+# apt clean
+apt -y clean
 
-# To use on Cluster with InfinyBand and Slurm
-apt-get -y install dapl2-utils \
-                   libdapl2 \
-                   libibverbs1 \
-                   librdmacm1 \
-                   libcxgb3-1 \
-                   libipathverbs1 \
-                   libmlx4-1 \
-                   libmlx5-1 \
-                   libmthca1 \
-                   libnes1 \
-                   libpmi0 \
-                   libslurm30
-
-# Installing MeshGems license
-cd /opt && tar zxvf /opt/SALOME-8.3.0-MPI-DB9.3.tgz
-rm /opt/SALOME-8.3.0-MPI-DB9.3.tgz
+# Installing Salome
+cd /opt && tar zxvf /opt/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz
+rm /opt/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz
 
 # Fix for Salome
-ln -s /usr/share/opencascade/resources/Shaders/ /usr/src
+# ln -s /usr/share/opencascade/resources/Shaders/ /usr/src
 
-# echo "To finalize installation you have to login container and install Salome."
