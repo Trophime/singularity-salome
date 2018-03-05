@@ -48,7 +48,8 @@ echo "deb http://euler/~trophime/debian/ buster main" >  /etc/apt/sources.list.d
 apt-get update
 apt-get -y upgrade
 apt-get -y install emacs vim nano \
-   bash-completion wget curl
+   bash-completion wget curl \
+   openssh-client
 
 apt-get install -y \
    firefox-esr \
@@ -85,7 +86,7 @@ rm -f /tmp/virtualgl_2.5.2_amd64.deb
 apt -y clean
 
 # Installing Salome
-cd /opt && tar zxvf /opt/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz
+cd /opt && tar zxf /opt/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz
 rm /opt/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz
 
 # Fix for Salome
