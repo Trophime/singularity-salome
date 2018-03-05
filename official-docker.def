@@ -43,7 +43,7 @@ apt-get -y install lsb-release \
          python-simplejson jsonlint \
          python-yaml yamllint
 
-apt-get install nvidia-driver nvidia-smi
+# apt-get install nvidia-driver nvidia-smi
 
 # Install Salome
 wget --http-user ${HTTP_USER} --http-password ${HTTP_PASSWD} \
@@ -54,24 +54,24 @@ cd /opt
 sh /tmp/Salome-public.run -t /opt/salome -d
 rm /tmp/Salome-public.run
 
-# To use on Cluster with InfinyBand and Slurm
-# !!! Watch out depends on Release !!!
-apt-get -y install dapl2-utils \
-                   libdapl2 \
-                   libibverbs1 \
-                   librdmacm1 \
-                   libcxgb3-1 \
-                   libipathverbs1 \
-                   libmlx4-1 \
-                   libmlx5-1 \
-                   libmthca1 \
-                   libnes1 \
-                   libpmi0
+# # To use on Cluster with InfinyBand and Slurm
+# # !!! Watch out depends on Release !!!
+# apt-get -y install dapl2-utils \
+#                    libdapl2 \
+#                    libibverbs1 \
+#                    librdmacm1 \
+#                    libcxgb3-1 \
+#                    libipathverbs1 \
+#                    libmlx4-1 \
+#                    libmlx5-1 \
+#                    libmthca1 \
+#                    libnes1 \
+#                    libpmi0
                    
 # Install Vglrun
-wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
+wget https://downloads.sourceforge.net/project/virtualgl/2.5.2/virtualgl_2.5.2_amd64.deb -O /tmp/virtualgl_2.5.2_amd64.deb
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
-dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+# dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
 
 # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
 chmod u+s /usr/lib/libvglfaker.so

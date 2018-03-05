@@ -1,0 +1,134 @@
+Bootstrap: docker
+From: debian:jessie
+#From: DOCKERIMAGE:DOCKERTAG
+
+%runscript
+exec echo "The runscript is the containers default runtime command!"
+
+%setup
+    echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
+    if [ ! -x "$SINGULARITY_ROOTFS/bin/sh" ]; then
+        echo "Hrmm, this container does not have /bin/sh installed..."
+        exit 1
+    fi
+    echo "Temporary hack for virtualgl"
+    mkdir -p $SINGULARITY_ROOTFS/tmp
+    cp /home/LNCMI-G/trophime/Downloads/virtualgl_2.5.2_amd64.deb $SINGULARITY_ROOTFS/tmp
+    echo "Temporary hack for Salome"
+    cp /home/LNCMI-G/trophime/Downloads/Salome-V8_4_0-univ_public.run $SINGULARITY_ROOTFS/tmp
+exit 0
+
+
+%environment
+export PATH=/opt/salome/appli_V8_4_0/:$PATH
+export FEELPP_REPOSITORY=/feel
+export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
+
+%labels
+AUTHOR christophe.trophime@lncmi.cnrs.fr
+
+%post
+
+# create repositories
+mkdir -p /scratch /tmp /home /mnt
+mkdir -p /opt/DISTENE/DLim
+mkdir -p /feel
+
+# firefox-esr on Debian 
+apt-get update
+apt-get -y upgrade
+apt-get -y install lsb-release wget curl
+apt-get -y install iputils-ping net-tools nmap
+
+# Add contrib and non-free section (should check if updates and backports exist)
+PLATFORM=$(lsb_release -cs)
+echo "deb http://ftp.debian.org/debian $PLATFORM-updates main" >> /etc/apt/sources.list
+echo "deb http://ftp.debian.org/debian $PLATFORM-backports main" >> /etc/apt/sources.list
+sed -i'.bak' 's/$/ contrib non-free/' /etc/apt/sources.list
+
+# # To add Debian/Ubuntu Lncmi repository
+# apt-get update && apt-get -y install gnupg2
+# gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv 535D3508
+# gpg --export --armor 535D3508 | apt-key add -
+# echo "deb http://euler/~trophime/debian/ $PLATFORM main" >  /etc/apt/sources.list.d/lncmi.list
+
+# firefox-esr on Debian 
+apt-get update
+apt-get -y upgrade
+apt-get -y install iceweasel \
+         python-simplejson
+# apt-get -y install jsonlint \
+#          python-yaml yamllint
+
+# # Install Nvidia 
+# apt-get -y --force-yes install nvidia-driver nvidia-smi
+
+# Install Vglrun ( getting deb from sourceforge is broken... )
+apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
+if [ ! /tmp/virtualgl_2.5.2_amd64.deb  ]; then
+   wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download  -O /tmp/virtualgl_2.5.2_amd64.deb
+fi
+dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+
+# # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
+# chmod u+s /usr/lib/libvglfaker.so
+# chmod u+s /usr/lib/libdlfaker.so
+
+# Install Salome
+
+# Needed for universal bin
+apt-get -y install libglu1-mesa libxmu6
+apt-get -y install libxss1 libgomp1 libquadmath0 libgtk2.0-0 libjasper1
+apt-get -y install libxft2
+apt-get -y install  emacs-nox vim 
+
+# # add libOPENTURNS.so
+# curl http://debian.openturns.org/openturns.org-repo.key | apt-key add -
+# echo deb http://ubuntu.openturns.org $PLATFORM main | tee /etc/apt/sources.list.d/openturns.list
+# apt-get update
+# apt-cache search openturns
+# apt-get -y install python-openturns
+# # ot plugins:
+# #  otfftw otlhs otlm otmixmod otmorris otrobopt otsvm
+
+if [ ! -f /tmp/Salome-V8_4_0-univ_public.run ]; then
+ wget --http-user barbu --http-password 171167 \
+       -O /tmp/Salome-V8_4_0-univ_public.run \
+       "http://www.salome-platform.org/downloads/current-version/DownloadDistr?platform=UniBinNew2&version=8.4.0_64bit"
+fi
+mkdir -p /opt/
+cd /opt
+sh /tmp/Salome-V8_4_0-univ_public.run -t /opt/salome -d
+rm /tmp/Salome-V8_4_0-univ_public.run
+
+# # Fix for Salome
+# cd /opt/salome/Salome-V8_4_0-univ/prerequisites/
+# for dir in $(ls -1); do
+#   if [ -d $dir/lib ]; then 
+#      echo "Adding $dir to LD_LIBRARY_PATH"
+#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/prerequisites/$dir/lib:$LD_LIBRARY_PATH
+#   fi
+# done
+
+# cd /opt/salome/Salome-V8_4_0-univ/tools/
+# for module in $(ls -1); do
+#   if [ -d $module/lib ]; then
+#      echo "Adding $module to LD_LIBRARY_PATH"
+#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/tools/$module/lib:$LD_LIBRARY_PATH
+#   fi
+# done
+
+# cd /opt/salome/Salome-V8_4_0-univ/modules/
+# for module in $(ls -1); do
+#   if [ -d $module/lib/salome ]; then
+#      echo "Adding $module to LD_LIBRARY_PATH"
+#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/modules/$module/lib/salome:$LD_LIBRARY_PATH
+#   fi
+# done  
+
+# export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/prerequisites/Paraview-540_EDF/lib/paraview-5.4/:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/prerequisites/Meshgems-257/lib/Linux_64/:$LD_LIBRARY_PATH
+
+# clean up
+apt-get -y autoclean
+

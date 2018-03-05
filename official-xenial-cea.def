@@ -1,0 +1,110 @@
+Bootstrap: docker
+From: ubuntu:xenial
+
+%runscript
+exec echo "The runscript is the containers default runtime command!"
+
+%setup
+    echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
+    if [ ! -x "$SINGULARITY_ROOTFS/bin/sh" ]; then
+        echo "Hrmm, this container does not have /bin/sh installed..."
+        exit 1
+    fi
+    echo "Temporary hack for virtualgl"
+    mkdir -p $SINGULARITY_ROOTFS/tmp
+    cp /home/LNCMI-G/trophime/Downloads/virtualgl_2.5.2_amd64.deb $SINGULARITY_ROOTFS/tmp
+    echo "Temporary hack for Salome"
+    cp /home/LNCMI-G/trophime/Downloads/SALOME-8.4.0-UB16.04-SRC.tgz $SINGULARITY_ROOTFS/tmp
+exit 0
+
+
+%environment
+export PATH=/opt/salome/:$PATH
+export FEELPP_REPOSITORY=/feel
+export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
+
+%labels
+AUTHOR christophe.trophime@lncmi.cnrs.fr
+
+%post
+
+# create repositories
+mkdir -p /scratch /tmp /home /mnt
+mkdir -p /opt/DISTENE/DLim
+mkdir -p /feel
+
+# # To add Debian/Ubuntu Lncmi repository
+# apt-get update && apt-get -y install gnupg2
+# gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv 535D3508
+# gpg --export --armor 535D3508 | apt-key add -
+# echo "deb http://euler/~trophime/debian/ xenial main" >  /etc/apt/sources.list.d/lncmi.list
+
+# firefox-esr on Debian 
+apt-get update
+apt-get -y upgrade
+apt-get -y install lsb-release \
+           firefox \
+           iputils-ping net-tools \
+         python-simplejson jsonlint \
+         python-yaml yamllint \
+         wget curl
+
+# Install Vglrun ( getting deb from sourceforge is broken... )
+
+apt-get -y install libglu1-mesa mesa-utils mesa-utils-extra x11-apps libxv1
+if [ ! /tmp/virtualgl_2.5.2_amd64.deb  ]; then
+   wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download  -O /tmp/virtualgl_2.5.2_amd64.deb
+fi
+dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+
+# # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
+# chmod u+s /usr/lib/libvglfaker.so
+# chmod u+s /usr/lib/libdlfaker.so
+
+# apt-get install nvidia-driver nvidia-smi
+
+# Install Salome
+
+# Needed for Cea version
+apt -y install libgfortran3
+
+# # Needed for universal bin
+# apt-get -y install libxss1 libgomp1 libquadmath0
+# # add libOPENTURNS.so
+# PLATFORM=$(lsb_release -cs)
+# curl http://debian.openturns.org/openturns.org-repo.key | apt-key add -
+# echo deb http://ubuntu.openturns.org $PLATFORM main | tee /etc/apt/sources.list.d/openturns.list
+# apt-get update
+# apt-cache search openturns
+# apt-get -y install python-openturns
+# # ot plugins:
+# #  otfftw otlhs otlm otmixmod otmorris otrobopt otsvm
+
+if [ ! -f /tmp/SALOME-8.4.0-UB16.04-SRC.tgz ]; then
+ wget --http-user barbu --http-password 171167 \
+       -O /tmp/SALOME-8.4.0-UB16.04-SRC.tgz \
+       "http://www.salome-platform.org/downloads/current-version/DownloadDistr?platform=OS1.UB16.04&version=8.4.0"
+fi
+mkdir -p /opt/
+cd /opt
+tar zxf /tmp/SALOME-8.4.0-UB16.04-SRC.tgz
+mv SALOME-8.4.0-UB16.04-SRC salome
+rm /tmp/SALOME-8.4.0-UB16.04-SRC.tgz
+
+# # To use on Cluster with InfinyBand and Slurm
+# # !!! Watch out depends on Release !!!
+# apt-get -y install dapl2-utils \
+#                    libdapl2 \
+#                    libibverbs1 \
+#                    librdmacm1 \
+#                    libcxgb3-1 \
+#                    libipathverbs1 \
+#                    libmlx4-1 \
+#                    libmlx5-1 \
+#                    libmthca1 \
+#                    libnes1 \
+#                    libpmi0
+                   
+# clean up
+apt-get -y autoclean
+
