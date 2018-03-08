@@ -49,7 +49,7 @@ apt-get update
 apt-get -y upgrade
 apt-get -y install emacs vim nano \
    bash-completion wget curl \
-   openssh-client
+   openssh-client net-tools
 
 apt-get install -y \
    firefox-esr \
