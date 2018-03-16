@@ -71,7 +71,8 @@ apt-get install -y \
    python-sip python-pyqt5 \
    graphviz \
    valgrind \
-   python-psutil 
+   python-psutil   \
+   yamllint python-yaml
 
 apt-get -y install nvidia-driver nvidia-smi
 

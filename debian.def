@@ -1,8 +1,31 @@
 Bootstrap: docker
 From: debian:buster
 
+%help
+USAGE: salome [-h]
+
+NOTES:
+1) This image is read-only!
+
+EXAMPLES:
+List availailable apps
+    $ singularity apps <image-name>
+
+Run salome in TUI mode:
+    $ singularity run salome -t scrypt.py args:....
+
+Run salome in GUI mode:
+    $ singularity run --nv salome
+
+Run salome in GUI mode on NoVNC/Virtual :
+    $ singularity run --nv vglrun salome
+
+To add support for MeshGems:
+    $ singularity run --nv -B${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim salome
+where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
+
 %runscript
-exec echo "The runscript is the containers default runtime command!"
+echo "type: singularity help <image-name>"
 
 %setup
 echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
@@ -14,7 +37,11 @@ fi
 mkdir -p $SINGULARITY_ROOTFS/opt
 mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Dlim
 # get Salome custom tarball
-cp //home/LNCMI-G/trophime/Salome_Packages/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz $SINGULARITY_ROOTFS/opt/
+cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz $SINGULARITY_ROOTFS/opt/
+mkdir -p /usr/local/share/salome/test
+for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/*py); do
+  cp $script  /usr/local/share/salome/test
+done
 exit 0
 
 
@@ -31,8 +58,27 @@ export FEELPP_REPOSITORY
 
 %labels
 AUTHOR christophe.trophime@lncmi.cnrs.fr
+Maintainer: Christophe Trophime
+Maintainer_email: christophe.trophime@lncmi.cnrs.fr
+Version 1.0
 
 %post
+echo "Post install"
+# sed -i 's/.*PS1 *=.*//g' /etc/bash.bashrc
+# sed -i 's/.*PS1 *=.*//g' /.singularity.d/actions/shell
+# sed -i 's/.*PS1 *=.*//g' /.singularity.d/env/99-base.sh
+# sed -i 's/.*HOME *=.*//g' /.singularity.d/env/10-docker.sh
+
+echo "alias ls='ls --color=auto'" >> /etc/bash.bashrc
+echo "alias ll='ls -ls'" >> /etc/bash.bashrc
+echo "alias cp='cp -i'" >> /etc/bash.bashrc
+echo "alias mv='mv -i'" >> /etc/bash.bashrc
+echo "alias rm='rm -i'" >> /etc/bash.bashrc
+echo "alias grep='grep --color'" >> /etc/bash.bashrc
+
+echo "# Add support for openmp" >> /etc/bash.bashrc
+echo "export OMP_NUM_THREADS=1" >> /etc/bash.bashrc
+echo "export OPENBLAS_NUM_THREADS=1 #OMP_NUM_THREADS=1,1" >> /etc/bash.bashrc
 
 export LANG=C
 mkdir -p /feel
@@ -65,30 +111,32 @@ apt-get install -y \
    libboost-filesystem1.62.0 libboost-regex1.62.0 libboost-signals1.62.0 libboost-thread1.62.0 libboost-date-time1.62.0 libboost-chrono1.62.0 libboost-atomic1.62.0 \
    graphviz \
    valgrind \
-   python-psutil 
+   python-psutil  \
+   yamllint python-yaml
 
-# # Installing Graphic driver
-# sed -i'.bak' 's/$/ contrib non-free/' /etc/apt/sources.list
-# apt-get update
-# apt-get -y install nvidia-driver nvidia-smi
-
-# Installing VirtaulGl for noVNC
+# Installing VirtualGl for noVNC
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
 rm -f /tmp/virtualgl_2.5.2_amd64.deb
 
-# # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
-# chmod u+s /usr/lib/libvglfaker.so
-# chmod u+s /usr/lib/libdlfaker.so
-
-# apt clean
+# Cleanup
 apt -y clean
 
 # Installing Salome
 cd /opt && tar zxf /opt/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz
 rm /opt/SALOME-8.4.0-LNCMI-MPI-DBtesting.tgz
 
-# Fix for Salome
-# ln -s /usr/share/opencascade/resources/Shaders/ /usr/src
+%test
+for script in $(ls /usr/local/share/salome/test/*py); do
+  echo -n "Running $script"
+  status=salome -t $script > /dev/null
+  if [ "x$status" = "0" ]; then
+     echo "\t FAILED"
+  else
+     echo "\t PASS"
+  fi   
+done
 
+%apprun
+salome
