@@ -80,6 +80,9 @@ apt -y install libgfortran3
 # # ot plugins:
 # #  otfftw otlhs otlm otmixmod otmorris otrobopt otsvm
 
+# to get some performance metrices for Salome
+apt-get -y install python-memory-profiler
+
 if [ ! -f /tmp/SALOME-8.4.0-UB16.04-SRC.tgz ]; then
  wget --http-user barbu --http-password 171167 \
        -O /tmp/SALOME-8.4.0-UB16.04-SRC.tgz \

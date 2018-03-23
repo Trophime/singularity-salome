@@ -87,6 +87,9 @@ apt-get -y install  emacs-nox vim
 # # ot plugins:
 # #  otfftw otlhs otlm otmixmod otmorris otrobopt otsvm
 
+# to get some performance metrices for Salome
+apt-get -y install python-memory-profiler
+
 if [ ! -f /tmp/Salome-V8_4_0-univ_public.run ]; then
  wget --http-user barbu --http-password 171167 \
        -O /tmp/Salome-V8_4_0-univ_public.run \

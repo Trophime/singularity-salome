@@ -120,6 +120,9 @@ wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd6
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
 rm -f /tmp/virtualgl_2.5.2_amd64.deb
 
+# to get some performance metrices for Salome
+apt-get -y install python-memory-profiler
+
 # Cleanup
 apt -y clean
 

@@ -50,6 +50,9 @@ apt-get -y install lsb-release \
          python-simplejson jsonlint \
          python-yaml yamllint
 
+# to get some performance metrices for Salome
+apt-get -y install python-memory-profiler
+
 # To use on Cluster with InfinyBand and Slurm
 # !!! Watch out depends on Release !!!
 apt-get -y install dapl2-utils \

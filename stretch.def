@@ -80,14 +80,17 @@ wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd6
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
 
-# Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
-chmod u+s /usr/lib/libvglfaker.so
-chmod u+s /usr/lib/libdlfaker.so
+# # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
+# chmod u+s /usr/lib/libvglfaker.so
+# chmod u+s /usr/lib/libdlfaker.so
 
 # apt-get -y install clang-4.0 python2.7-dev \
 # 	       git \
 #            magnettools libmagnettools hifimagnet \
 #            libfeel++1 feel++-toolbox feel++-toolbox-solid
+
+# to get some performance metrices for Salome
+apt-get -y install python-memory-profiler
 
 # To use on Cluster with InfinyBand and Slurm
 apt-get -y install dapl2-utils \
