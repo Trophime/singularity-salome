@@ -1,8 +1,31 @@
 Bootstrap: docker
 From: debian:stretch
 
+%help
+USAGE: salome [-h]
+
+NOTES:
+1) This image is read-only!
+
+EXAMPLES:
+List availailable apps
+    $ singularity apps <image-name>
+
+Run salome in TUI mode:
+    $ singularity run salome -t scrypt.py args:....
+
+Run salome in GUI mode:
+    $ singularity run --nv salome
+
+Run salome in GUI mode on NoVNC/Virtual :
+    $ singularity run --nv vglrun salome
+
+To add support for MeshGems:
+    $ singularity run --nv -B${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim salome
+where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
+
 %runscript
-exec echo "The runscript is the containers default runtime command!"
+echo "type: singularity help <image-name>"
 
 %setup
     echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
@@ -10,18 +33,22 @@ exec echo "The runscript is the containers default runtime command!"
         echo "Hrmm, this container does not have /bin/sh installed..."
         exit 1
     fi
+    # prepare for MeshGems
     mkdir -p $SINGULARITY_ROOTFS/opt
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-DB9.3.tgz $SINGULARITY_ROOTFS/opt/
-    # mkdir -p $SINGULARITY_ROOTFS/tmp
-    # cp /home/LNCMI-G/trophime/feelpp/research/hifimagnet/singularity/ensight/virtualgl_2.5.2_amd64.deb $SINGULARITY_ROOTFS/tmp/
-
+    mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Dlim
+    mkdir -p $SINGULARITY_ROOTFS/opt
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.4.0-Debian-DB9.4.tgz $SINGULARITY_ROOTFS/opt/
+    mkdir -p /usr/local/share/salome/test
+    for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/*py); do
+       cp $script  /usr/local/share/salome/test
+    done
 exit 0
 
 
 %environment
 CASROOT=/usr
 LD_LIBRARY_PATH=/usr/lib/paraview:$LD_LIBRARY_PATH
-PATH=/opt/SALOME-8.3.0-MPI-DB9.3:$PATH
+PATH=/opt/SALOME-8.4.0-Debian-DB9.4:$PATH
 export CASROOT
 export LD_LIBRARY_PATH
 export PATH
@@ -31,8 +58,22 @@ export FEELPP_REPOSITORY
 
 %labels
 AUTHOR christophe.trophime@lncmi.cnrs.fr
+Maintainer: Christophe Trophime
+Maintainer_email: christophe.trophime@lncmi.cnrs.fr
+Version 1.0
 
 %post
+
+echo "alias ls='ls --color=auto'" >> /etc/bash.bashrc
+echo "alias ll='ls -ls'" >> /etc/bash.bashrc
+echo "alias cp='cp -i'" >> /etc/bash.bashrc
+echo "alias mv='mv -i'" >> /etc/bash.bashrc
+echo "alias rm='rm -i'" >> /etc/bash.bashrc
+echo "alias grep='grep --color'" >> /etc/bash.bashrc
+
+echo "# Add support for openmp" >> /etc/bash.bashrc
+echo "export OMP_NUM_THREADS=1" >> /etc/bash.bashrc
+echo "export OPENBLAS_NUM_THREADS=1 #OMP_NUM_THREADS=1,1" >> /etc/bash.bashrc
 
 export LANG=C
 mkdir -p /feel
@@ -71,26 +112,24 @@ apt-get install -y \
    python-sip python-pyqt5 \
    graphviz \
    valgrind \
-   python-psutil   \
+   python-psutil python-memory-profiler  \
    yamllint python-yaml
 
-apt-get -y install nvidia-driver nvidia-smi
+#apt-get -y install nvidia-driver nvidia-smi
 
+# Installing VirtualGl for noVNC
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+rm -f /tmp/virtualgl_2.5.2_amd64.deb
 
 # # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
 # chmod u+s /usr/lib/libvglfaker.so
 # chmod u+s /usr/lib/libdlfaker.so
 
 # apt-get -y install clang-4.0 python2.7-dev \
-# 	       git \
 #            magnettools libmagnettools hifimagnet \
 #            libfeel++1 feel++-toolbox feel++-toolbox-solid
-
-# to get some performance metrices for Salome
-apt-get -y install python-memory-profiler
 
 # To use on Cluster with InfinyBand and Slurm
 apt-get -y install dapl2-utils \
@@ -106,11 +145,28 @@ apt-get -y install dapl2-utils \
                    libpmi0 \
                    libslurm30
 
-# Installing MeshGems license
-cd /opt && tar zxvf /opt/SALOME-8.3.0-MPI-DB9.3.tgz
-rm /opt/SALOME-8.3.0-MPI-DB9.3.tgz
+# Cleanup
+apt -y clean
 
-# Fix for Salome
-ln -s /usr/share/opencascade/resources/Shaders/ /usr/src
+# Installing Salome
+cd /opt && tar zxvf /opt/SALOME-8.4.0-Debian-DB9.4.tgz
+rm /opt/SALOME-8.4.0-Debian-DB9.4.tgz
 
-# echo "To finalize installation you have to login container and install Salome."
+%test
+for script in $(ls /usr/local/share/salome/test/*py); do
+  echo -n "Running $script"
+  status=salome -t $script > /dev/null
+  if [ "x$status" = "0" ]; then
+     echo "\t FAILED"
+  else
+     echo "\t PASS"
+  fi   
+done
+
+%apprun salome
+echo "Need to pass --nv options to singularity"
+salome
+
+%apprun vgl_salome
+echo "Need to pass --nv options to singularity"
+vglrun salome
