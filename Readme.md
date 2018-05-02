@@ -34,7 +34,7 @@ sudo -E singularity -vvv build --force --notest [--writable] "./salome-$VERSION-
 ```
 export SREGISTRY_CLIENT=registry
 export SREGISTRY_CLIENT_SECRETS=~/.sregistry-cesga
-export SREGISTRY_STORAGE=
+[export SREGISTRY_STORAGE=...]
 
 sregistry push --name hifimagnet/salome --tag 8.4.0 salome-8.4.0.simg 
 ```
@@ -44,10 +44,19 @@ sregistry push --name hifimagnet/salome --tag 8.4.0 salome-8.4.0.simg
 ```
 export SREGISTRY_CLIENT=registry
 export SREGISTRY_CLIENT_SECRETS=~/.sregistry-cesga
-export SREGISTRY_STORAGE=
+[export SREGISTRY_STORAGE=...]
 
-sregistry pull --name salome-8.4.0.simg hifimagnet/salome:8.4.0 
+sregistry pull --name salome-8.4.0.simg hifimagnet/salome:8.4.0
+[sregistry rename hifimagnet/salome:8.4.0 salome-8.4.0.simg]
 ```
+
+On cesga, as sregistry is not installed you should instead use sregistry-cli image :
+```
+singularity run -B /mnt shub://sregistry.srv.cesga.es/mso4sc/sregistry pull hifimagnet/salome:8.4.0
+singularity run -B /mnt shub://sregistry.srv.cesga.es/mso4sc/sregistry rename hifimagnet/salome:8.4.0 salome-8.4.0.simg 
+```
+
+Note that you may reveive somm warnings like that:
 
 = Running singularity
 
