@@ -37,7 +37,7 @@ echo "type: singularity help <image-name>"
     mkdir -p $SINGULARITY_ROOTFS/opt
     mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Dlim
     mkdir -p $SINGULARITY_ROOTFS/opt
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.4.0-Debian-DB9.4.tgz $SINGULARITY_ROOTFS/opt/
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-DB9.4.tgz $SINGULARITY_ROOTFS/opt/
     mkdir -p /usr/local/share/salome/test
     for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/*py); do
        cp $script  /usr/local/share/salome/test
@@ -48,7 +48,7 @@ exit 0
 %environment
 CASROOT=/usr
 LD_LIBRARY_PATH=/usr/lib/paraview:$LD_LIBRARY_PATH
-PATH=/opt/SALOME-8.4.0-Debian-DB9.4:$PATH
+PATH=/opt/SALOME-8.3.0-MPI-DB9.4:$PATH
 export CASROOT
 export LD_LIBRARY_PATH
 export PATH
@@ -149,8 +149,8 @@ apt-get -y install dapl2-utils \
 apt -y clean
 
 # Installing Salome
-cd /opt && tar zxvf /opt/SALOME-8.4.0-Debian-DB9.4.tgz
-rm /opt/SALOME-8.4.0-Debian-DB9.4.tgz
+cd /opt && tar zxvf /opt/SALOME-8.3.0-MPI-DB9.4.tgz
+rm /opt/SALOME-8.3.0-MPI-DB9.4.tgz
 
 %test
 for script in $(ls /usr/local/share/salome/test/*py); do
