@@ -17,6 +17,7 @@ usage(){
    echo "-a             Specifiy parameters of the python script (only valid in combination with -s, optional)"
    echo "-i             Change singularity image (default: feelpp_salome-mso4sc.simg)"
    echo "-r             Change singularity image directory (default: $LUSTRE/singularity_images)"
+   echo "-l             Specify directory holding MeshGems license key (default: $STORE/Distene)"
    echo "-d             Activate debug mode"
    echo ""
    exit 1
@@ -36,6 +37,7 @@ while getopts "hts:a:i:d" option ; do
        a ) SCRIPT_ARGS=$OPTARG ;;
        i ) IMAGE=$OPTARG ;;
        r ) SINGULARITY_DIR=$OPTARG ;;
+       l ) KEYDIR=$OPTARG ;;
        d ) DEBUG=1 ;;
        ? ) usage ;;
    esac
@@ -48,6 +50,7 @@ shift $((OPTIND - 1))
 : ${TUI=0}
 : ${SCRIPT=""}
 : ${SCRIPT_ARGS=""}
+: ${KEYDIR=$STORE/Distene}
 
 : ${SINGULARITY_DIR=$LUSTRE/singularity_images}
 
@@ -64,7 +67,7 @@ if [ $TUI = "1" ]; then
 	    -H $HOME:/home/$USER \
 	    -B /mnt \
 	    -B /scratch \
-	    -B $STORE/Distene:/opt/DISTENE/DLim \
+	    -B $KEYDIR:/opt/DISTENE/DLim \
 	    $SINGULARITY_DIR/$IMAGE \
 	    salome -t $SCRIPT
     else
