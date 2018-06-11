@@ -12,20 +12,20 @@ List availailable apps
     $ singularity apps <image-name>
 
 Run salome in TUI mode:
-    $ singularity run salome -t scrypt.py args:....
+    $ singularity run <image-app> -t scrypt.py args:....
 
 Run salome in GUI mode:
-    $ singularity run --nv salome
+    $ singularity run --nv --app <app> <image-app>
 
 Run salome in GUI mode on NoVNC/Virtual :
-    $ singularity run --nv vglrun salome
+    $ singularity run --nv --app vgl_salome
 
 To add support for MeshGems:
-    $ singularity run --nv -B${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim salome
+    $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim  -[-app <app>] <image-app>
 where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
 
 %runscript
-echo "type: singularity help <image-name>"
+exec salome "$@"
 
 %setup
     echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
@@ -165,8 +165,8 @@ done
 
 %apprun salome
 echo "Need to pass --nv options to singularity"
-salome
+salome "$@"
 
 %apprun vgl_salome
 echo "Need to pass --nv options to singularity"
-vglrun salome
+vglrun salome "$@"
