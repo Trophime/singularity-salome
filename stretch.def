@@ -12,16 +12,16 @@ List availailable apps
     $ singularity apps <image-name>
 
 Run salome in TUI mode:
-    $ singularity run <image-app> -t scrypt.py args:....
+    $ singularity run   <image-name> salome -t scrypt.py args:....
 
 Run salome in GUI mode:
-    $ singularity run --nv --app <app> <image-app>
+    $ singularity run --nv --app salome  <image-name>
 
 Run salome in GUI mode on NoVNC/Virtual :
-    $ singularity run --nv --app vgl_salome
+    $ singularity run --nv --app vgl_salome  <image-name> ...
 
 To add support for MeshGems:
-    $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim  -[-app <app>] <image-app>
+    $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim  [--app <app>] <image-app>
 where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
 
 %runscript
@@ -94,9 +94,8 @@ echo "deb http://euler/~trophime/debian/ stretch main" >  /etc/apt/sources.list.
 apt-get update
 apt-get -y upgrade
 apt-get -y install emacs vim nano \
-   lshw lsb-release bash-completion \
-   kmod iputils-ping net-tools \
-   wget curl
+   bash-completion wget curl \
+   openssh-client net-tools
 
 apt-get install -y \
    firefox-esr \
@@ -115,21 +114,12 @@ apt-get install -y \
    python-psutil python-memory-profiler  \
    yamllint python-yaml
 
-#apt-get -y install nvidia-driver nvidia-smi
-
-# Installing VirtualGl for noVNC
+## Installing VirtualGl for noVNC
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
 rm -f /tmp/virtualgl_2.5.2_amd64.deb
 
-# # Work around "ERROR: ld.so: object 'libvglfaker.so' from LD_PRELOAD cannot be preloaded: ignored."
-# chmod u+s /usr/lib/libvglfaker.so
-# chmod u+s /usr/lib/libdlfaker.so
-
-# apt-get -y install clang-4.0 python2.7-dev \
-#            magnettools libmagnettools hifimagnet \
-#            libfeel++1 feel++-toolbox feel++-toolbox-solid
 
 # To use on Cluster with InfinyBand and Slurm
 apt-get -y install dapl2-utils \
@@ -144,6 +134,9 @@ apt-get -y install dapl2-utils \
                    libnes1 \
                    libpmi0 \
                    libslurm30
+
+# to get some performance metrices for Salome
+#apt-get -y install python-memory-profiler
 
 # Cleanup
 apt -y clean
@@ -168,5 +161,4 @@ echo "Need to pass --nv options to singularity"
 salome "$@"
 
 %apprun vgl_salome
-echo "Need to pass --nv options to singularity"
 vglrun salome "$@"
