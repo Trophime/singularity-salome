@@ -1,0 +1,12 @@
+!<Insert>
+name: "HL-31-H1H2-2t"
+Helices:
+  - HL-31_H1-2t
+  - HL-31_H2-2t
+Rings:
+  - Ring-H1H2
+CurrentLeads:
+HAngles:
+RAngles:
+innerbore:
+outerbore:
