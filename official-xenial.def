@@ -15,12 +15,12 @@ exec echo "The runscript is the containers default runtime command!"
     mkdir -p $SINGULARITY_ROOTFS/tmp
     cp /home/LNCMI-G/trophime/Downloads/virtualgl_2.5.2_amd64.deb $SINGULARITY_ROOTFS/tmp
     echo "Temporary hack for Salome"
-    cp /home/LNCMI-G/trophime/Downloads/Salome-V8_4_0-univ_public.run $SINGULARITY_ROOTFS/tmp
+    cp /home/LNCMI-G/trophime/Downloads/Salome-V8_5_0-univ_public.run $SINGULARITY_ROOTFS/tmp
 exit 0
 
 
 %environment
-export PATH=/opt/salome/appli_V8_4_0/:$PATH
+export PATH=/opt/salome/appli_V8_5_0/:$PATH
 export FEELPP_REPOSITORY=/feel
 export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
 
@@ -90,43 +90,43 @@ apt-get -y install  emacs-nox vim
 # to get some performance metrices for Salome
 apt-get -y install python-memory-profiler
 
-if [ ! -f /tmp/Salome-V8_4_0-univ_public.run ]; then
+if [ ! -f /tmp/Salome-V8_5_0-univ_public.run ]; then
  wget --http-user barbu --http-password 171167 \
-       -O /tmp/Salome-V8_4_0-univ_public.run \
+       -O /tmp/Salome-V8_5_0-univ_public.run \
        "http://www.salome-platform.org/downloads/current-version/DownloadDistr?platform=UniBinNew2&version=8.4.0_64bit"
 fi
 mkdir -p /opt/
 cd /opt
-sh /tmp/Salome-V8_4_0-univ_public.run -t /opt/salome -d
-rm /tmp/Salome-V8_4_0-univ_public.run
+sh /tmp/Salome-V8_5_0-univ_public.run -t /opt/salome -d
+rm /tmp/Salome-V8_5_0-univ_public.run
 
 # # Fix for Salome
-# cd /opt/salome/Salome-V8_4_0-univ/prerequisites/
+# cd /opt/salome/Salome-V8_5_0-univ/prerequisites/
 # for dir in $(ls -1); do
 #   if [ -d $dir/lib ]; then 
 #      echo "Adding $dir to LD_LIBRARY_PATH"
-#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/prerequisites/$dir/lib:$LD_LIBRARY_PATH
+#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_5_0-univ/prerequisites/$dir/lib:$LD_LIBRARY_PATH
 #   fi
 # done
 
-# cd /opt/salome/Salome-V8_4_0-univ/tools/
+# cd /opt/salome/Salome-V8_5_0-univ/tools/
 # for module in $(ls -1); do
 #   if [ -d $module/lib ]; then
 #      echo "Adding $module to LD_LIBRARY_PATH"
-#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/tools/$module/lib:$LD_LIBRARY_PATH
+#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_5_0-univ/tools/$module/lib:$LD_LIBRARY_PATH
 #   fi
 # done
 
-# cd /opt/salome/Salome-V8_4_0-univ/modules/
+# cd /opt/salome/Salome-V8_5_0-univ/modules/
 # for module in $(ls -1); do
 #   if [ -d $module/lib/salome ]; then
 #      echo "Adding $module to LD_LIBRARY_PATH"
-#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/modules/$module/lib/salome:$LD_LIBRARY_PATH
+#      export LD_LIBRARY_PATH=/opt/salome/Salome-V8_5_0-univ/modules/$module/lib/salome:$LD_LIBRARY_PATH
 #   fi
 # done  
 
-# export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/prerequisites/Paraview-540_EDF/lib/paraview-5.4/:$LD_LIBRARY_PATH
-# export LD_LIBRARY_PATH=/opt/salome/Salome-V8_4_0-univ/prerequisites/Meshgems-257/lib/Linux_64/:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/opt/salome/Salome-V8_5_0-univ/prerequisites/Paraview-540_EDF/lib/paraview-5.4/:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/opt/salome/Salome-V8_5_0-univ/prerequisites/Meshgems-257/lib/Linux_64/:$LD_LIBRARY_PATH
 
 # clean up
 apt-get -y autoclean

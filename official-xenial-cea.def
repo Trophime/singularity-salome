@@ -14,7 +14,7 @@ exec echo "The runscript is the containers default runtime command!"
     mkdir -p $SINGULARITY_ROOTFS/tmp
     cp /home/LNCMI-G/trophime/Downloads/virtualgl_2.5.2_amd64.deb $SINGULARITY_ROOTFS/tmp
     echo "Temporary hack for Salome"
-    cp /home/LNCMI-G/trophime/Downloads/SALOME-8.4.0-UB16.04-SRC.tgz $SINGULARITY_ROOTFS/tmp
+    cp /home/LNCMI-G/trophime/Downloads/SALOME-8.5.0-UB16.04-SRC.tgz $SINGULARITY_ROOTFS/tmp
 exit 0
 
 
@@ -85,16 +85,16 @@ apt -y install libgfortran3
 # to get some performance metrices for Salome
 apt-get -y install python-memory-profiler
 
-if [ ! -f /tmp/SALOME-8.4.0-UB16.04-SRC.tgz ]; then
+if [ ! -f /tmp/SALOME-8.5.0-UB16.04-SRC.tgz ]; then
  wget --http-user barbu --http-password 171167 \
-       -O /tmp/SALOME-8.4.0-UB16.04-SRC.tgz \
-       "http://www.salome-platform.org/downloads/current-version/DownloadDistr?platform=OS1.UB16.04&version=8.4.0"
+       -O /tmp/SALOME-8.5.0-UB16.04-SRC.tgz \
+       "http://www.salome-platform.org/downloads/current-version/DownloadDistr?platform=OS1.UB16.04&version=8.5.0"
 fi
 mkdir -p /opt/
 cd /opt
-tar zxf /tmp/SALOME-8.4.0-UB16.04-SRC.tgz
-mv SALOME-8.4.0-UB16.04-SRC salome
-rm /tmp/SALOME-8.4.0-UB16.04-SRC.tgz
+tar zxf /tmp/SALOME-8.5.0-UB16.04-SRC.tgz
+mv SALOME-8.5.0-UB16.04-SRC salome
+rm /tmp/SALOME-8.5.0-UB16.04-SRC.tgz
 
 # # To use on Cluster with InfinyBand and Slurm
 # # !!! Watch out depends on Release !!!
