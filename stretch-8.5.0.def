@@ -20,6 +20,12 @@ Run salome in GUI mode:
 Run salome in GUI mode on NoVNC/Virtual :
     $ singularity run --nv --app vgl_salome  <image-name> ...
 
+Run salome in TUI mode for Hifimagnet :
+    $ singularity run --app hifimagnet-tui  <image-name> ...
+
+Run salome in GUI mode for Hifimagnet :
+    $ singularity run --nv --app hifimagnet_gui  <image-name> ...
+
 To add support for MeshGems:
     $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim  [--app <app>] <image-app>
 where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
@@ -37,7 +43,7 @@ exec salome "$@"
     mkdir -p $SINGULARITY_ROOTFS/opt
     mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Dlim
     mkdir -p $SINGULARITY_ROOTFS/opt
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/opt/
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.5.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/opt/
     mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test
     for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/*py); do
        cp $script  $SINGULARITY_ROOTFS/usr/local/share/salome/test
@@ -46,18 +52,26 @@ exit 0
 
 
 %environment
-CASROOT=/usr
-LD_LIBRARY_PATH=/usr/lib/paraview:$LD_LIBRARY_PATH
-PATH=/opt/SALOME-8.3.0-MPI-DB9.5:$PATH
-export CASROOT
-export LD_LIBRARY_PATH
-export PATH
+export PATH=/opt/SALOME-8.5.0-MPI-DB9.5:$PATH
 
-DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
-export DISTENE_LICENSE_FILE
+export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
 
-FEELPP_REPOSITORY=/feel
-export FEELPP_REPOSITORY
+export FEELPP_REPOSITORY=/feel
+export HIFIMAGNET=/opt/SALOME-8.5.0-MPI-DB9.5/BINARIES-DB9.5/HIFIMAGNET/bin/salome/
+
+# Defining alias for security
+alias ls='ls --color=auto'
+alias ll='ls -ls'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias grep='grep --color'
+
+# Add support for openmp
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+
+export LANG=C
 
 %labels
 AUTHOR christophe.trophime@lncmi.cnrs.fr
@@ -67,18 +81,6 @@ Version 1.0
 
 %post
 
-echo "alias ls='ls --color=auto'" >> /etc/bash.bashrc
-echo "alias ll='ls -ls'" >> /etc/bash.bashrc
-echo "alias cp='cp -i'" >> /etc/bash.bashrc
-echo "alias mv='mv -i'" >> /etc/bash.bashrc
-echo "alias rm='rm -i'" >> /etc/bash.bashrc
-echo "alias grep='grep --color'" >> /etc/bash.bashrc
-
-echo "# Add support for openmp" >> /etc/bash.bashrc
-echo "export OMP_NUM_THREADS=1" >> /etc/bash.bashrc
-echo "export OPENBLAS_NUM_THREADS=1 #OMP_NUM_THREADS=1,1" >> /etc/bash.bashrc
-
-export LANG=C
 mkdir -p /feel
 mkdir -p /scratch /tmp
 
@@ -100,22 +102,29 @@ apt-get -y install emacs vim nano \
    bash-completion wget curl less \
    openssh-client net-tools
 
+# install default packages
 apt-get install -y \
    firefox-esr \
    libcos4-1 \
    omniidl omniidl-python omniorb-idl omniorb-nameserver python-omniorb python-omniorb-omg \
-   paraview-python \
-   netgen libnglib-5.3.1 \
-   gmsh-tetgen libpastix-dev \
    libqwt-qt5-6 \
-   libopencascade-visualization-dev libopencascade-ocaf-dev \
    libqt5xml5 libqt5test5 libqt5sensors5 libqt5positioning5 libqt5multimediawidgets5 libqt5webengine5 libqt5webenginewidgets5 \
    libboost-filesystem1.62.0 libboost-regex1.62.0 libboost-signals1.62.0 libboost-thread1.62.0 libboost-date-time1.62.0 libboost-chrono1.62.0 libboost-atomic1.62.0 \
+   libpython2.7 \
    python-sip python-pyqt5 \
+   python-numpy python-scipy python-matplotlib \
    graphviz \
    valgrind \
    python-psutil python-memory-profiler  \
    yamllint python-yaml
+
+# install specific packages required
+apt-get -y install \
+   libhdf5-1.8-mpi.dev libnetcdf-dev libcgns-dev libmed-dev libmedc-dev libmedimport-dev libmed-tools \
+   libgl2ps-dev libfreeimage-dev \
+   libqt5x11extras5 \
+   python-cycler python-sphinx sphinx-intl python-sphinxcontrib-napoleon \
+   python-subprocess32 python-functools32
 
 ## Installing VirtualGl for noVNC
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
@@ -138,16 +147,14 @@ apt-get -y install dapl2-utils \
                    libpmi0 \
                    libslurm30
 
-# to get some performance metrices for Salome
-#apt-get -y install python-memory-profiler
-
 # Cleanup
 apt -y clean
 apt -y autoclean
 
 # Installing Salome
-cd /opt && tar zxvf /opt/SALOME-8.3.0-MPI-DB9.5.tgz
-rm /opt/SALOME-8.3.0-MPI-DB9.5.tgz
+cd /opt && tar zxvf /opt/SALOME-8.5.0-MPI-DB9.5.tgz
+rm /opt/SALOME-8.5.0-MPI-DB9.5.tgz
+find /opt/SALOME-8.5.0-MPI-DB9.5 -name \*.py[co] | xargs -r rm
 
 %test
 for script in $(ls /usr/local/share/salome/test/*py); do
