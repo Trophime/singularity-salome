@@ -43,7 +43,7 @@ exec salome "$@"
     mkdir -p $SINGULARITY_ROOTFS/opt
     mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Dlim
     mkdir -p $SINGULARITY_ROOTFS/opt
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.4.0-LNCMI-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/opt/
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.4.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/opt/
     mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test
     for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/*py); do
        cp $script  $SINGULARITY_ROOTFS/usr/local/share/salome/test
@@ -52,12 +52,12 @@ exit 0
 
 
 %environment
-export PATH=/opt/SALOME-8.4.0-LNCMI-MPI-DB9.5:$PATH
+export PATH=/opt/SALOME-8.4.0-MPI-DB9.5:$PATH
 
 export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
 
 export FEELPP_REPOSITORY=/feel
-export HIFIMAGNET=/opt/SALOME-8.4.0-LNCMI-MPI-DB9.5/BINARIES-DB9.5/HIFIMAGNET/bin/salome/
+export HIFIMAGNET=/opt/SALOME-8.4.0-MPI-DB9.5/BINARIES-DB9.5/HIFIMAGNET/bin/salome/
 
 # Defining alias for security
 alias ls='ls --color=auto'
@@ -122,7 +122,8 @@ apt-get install -y \
 apt-get -y install \
    libhdf5-1.8-mpi.dev libnetcdf-dev libcgns-dev libmed-dev libmedc-dev libmedimport-dev libmed-tools \
    libgl2ps-dev libfreeimage-dev \
-   libqt5x11extras5
+   libqt5x11extras5 \
+   libnglib-dev
 
 ## Installing VirtualGl for noVNC
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
@@ -150,9 +151,9 @@ apt -y clean
 apt -y autoclean
 
 # Installing Salome
-cd /opt && tar zxvf /opt/SALOME-8.4.0-LNCMI-MPI-DB9.5.tgz
-rm /opt/SALOME-8.4.0-LNCMI-MPI-DB9.5.tgz
-find /opt/SALOME-8.4.0-LNCMI-MPI-DB9.5 -name \*.py[co] | xargs -r rm
+cd /opt && tar zxvf /opt/SALOME-8.4.0-MPI-DB9.5.tgz
+rm /opt/SALOME-8.4.0-MPI-DB9.5.tgz
+find /opt/SALOME-8.4.0-MPI-DB9.5 -name \*.py[co] | xargs -r rm
 
 %test
 for script in $(ls /usr/local/share/salome/test/*py); do

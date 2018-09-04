@@ -115,7 +115,7 @@ apt-get install -y \
    python-numpy python-scipy python-matplotlib \
    graphviz \
    valgrind \
-   python-psutil python-memory-profiler  \
+   python-psutil python-memory-profiler \
    yamllint python-yaml
 
 # install specific packages required
