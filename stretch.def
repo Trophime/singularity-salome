@@ -21,7 +21,7 @@ Run salome in GUI mode on NoVNC/Virtual :
     $ singularity run --nv --app vgl_salome  <image-name> ...
 
 To add support for MeshGems:
-    $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/Dlim  [--app <app>] <image-app>
+    $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/DLim  [--app <app>] <image-app>
 where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
 
 %runscript
@@ -35,7 +35,7 @@ exec salome "$@"
     fi
     # prepare for MeshGems
     mkdir -p $SINGULARITY_ROOTFS/opt
-    mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/Dlim
+    mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
     mkdir -p $SINGULARITY_ROOTFS/opt
     cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/opt/
     mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test

@@ -21,6 +21,8 @@ DIST=$(docker run -it --rm trophime/salome-$VERSION:$TAG lsb_release -cs)
 sudo -E singularity -vvv build --force --notest [--writable] "./salome-$VERSION-$DIST-$TAG.simg" "./salome-docker.def"
 ```
 
+Note: `--writable is need for cesga`
+
 An alternative is to build the image using the Salome binairies, for details see recipe
 ```
 sudo -E singularity -vvv build --force --notest [--writable] "./salome-$VERSION-$TAG.simg" "./stretch.def"
