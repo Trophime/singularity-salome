@@ -12,7 +12,7 @@ List availailable apps
     $ singularity apps <image-name>
 
 Run salome in TUI mode:
-    $ singularity run   <image-name> salome -t scrypt.py args:....
+    $ singularity run   <image-name> -t scrypt.py args:....
 
 Run salome in GUI mode:
     $ singularity run --nv --app salome  <image-name>
@@ -155,6 +155,12 @@ apt -y autoclean
 cd /opt && tar zxvf /opt/SALOME-8.5.0-MPI-DB9.5.tgz
 rm /opt/SALOME-8.5.0-MPI-DB9.5.tgz
 find /opt/SALOME-8.5.0-MPI-DB9.5 -name \*.py[co] | xargs -r rm
+
+# Try to cleanup more
+for package in $(dpkg -l | egrep ".*\-dev\b" | awk '{print $2}'); do \
+     echo "Remove $package"; \
+     apt -y remove $package; \
+done
 
 %test
 for script in $(ls /usr/local/share/salome/test/*py); do

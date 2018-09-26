@@ -42,7 +42,7 @@ geompy.addToStudy( Box_1, 'Box_1' )
 
 import  SMESH, SALOMEDS
 from salome.smesh import smeshBuilder
-smesh_gui = salome.ImportComponentGUI('SMESH')
+# smesh_gui = salome.ImportComponentGUI('SMESH')
 
 smesh = smeshBuilder.New(theStudy)
 Mesh_1 = smesh.Mesh(Box_1)
@@ -60,18 +60,18 @@ def computeMesh(mesh):
 
     print "Computed in %.1f s"%(t1-t0)
 
-@profile
-def displayMesh(mesh):
+# @profile
+# def displayMesh(mesh):
     
-    t0 = timer()
-    entry = salome.ObjectToID(mesh.GetMesh())
-    smesh_gui.CreateAndDisplayActor(entry)
-    t1 = timer()
+#     t0 = timer()
+#     entry = salome.ObjectToID(mesh.GetMesh())
+#     smesh_gui.CreateAndDisplayActor(entry)
+#     t1 = timer()
 
-    print "Displayed in %.1f s"%(t1-t0)
+#     print "Displayed in %.1f s"%(t1-t0)
 
 computeMesh(Mesh_1)
-displayMesh(Mesh_1)
+# displayMesh(Mesh_1)
 
 if salome.sg.hasDesktop():
   salome.sg.updateObjBrowser(True)
