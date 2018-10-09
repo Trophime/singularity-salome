@@ -40,13 +40,20 @@ exec salome "$@"
         exit 1
     fi
     # prepare for MeshGems
-    mkdir -p $SINGULARITY_ROOTFS/opt
     mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
-    mkdir -p $SINGULARITY_ROOTFS/opt
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.5.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/opt/
+    mkdir -p $SINGULARITY_ROOTFS/tmp    
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.5.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/tmp/
+    cp /home/LNCMI-G/trophime/Salome_Packages/install-SALOME-8.5.0-MPI-DB9.5.sh $SINGULARITY_ROOTFS/tmp/
     mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test
-    for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/*py); do
+    for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/scripts/*py); do
        cp $script  $SINGULARITY_ROOTFS/usr/local/share/salome/test
+    done
+    mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    for cfg in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*yaml); do
+       cp $cfg  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    done
+    for dat in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*dat); do
+       cp $dat  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
     done
 exit 0
 
@@ -84,53 +91,20 @@ Version 1.0
 mkdir -p /feel
 mkdir -p /scratch /tmp
 
-# Add contrib and non-free section (should check if updates and backports exist)
-echo "deb http://ftp.debian.org/debian stable-updates main" >> /etc/apt/sources.list
-echo "deb http://ftp.debian.org/debian stable-backports main" >> /etc/apt/sources.list
-sed -i'.bak' 's/$/ contrib non-free/' /etc/apt/sources.list
+# Installing Salome
+cd /tmp && sh ./install-SALOME-8.5.0-MPI-DB9.5.sh
+rm /tmp/install-SALOME-8.5.0-MPI-DB9.5.sh
+find /opt/SALOME-8.5.0-MPI-DB9.5 -name \*.py[co] | xargs -r rm
 
-# Add Debian/Ubuntu Lncmi repository (should check if depot is accessible)
-apt-get update
-apt-get -y install gnupg2  
-gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv 535D3508
-gpg --export --armor 535D3508 | apt-key add -
-echo "deb http://euler/~trophime/debian/ stretch main" >  /etc/apt/sources.list.d/lncmi.list
-
-apt-get update
-apt-get -y upgrade
-apt-get -y install emacs vim nano \
-   bash-completion wget curl less \
-   openssh-client net-tools
-
-# install default packages
-apt-get install -y \
-   firefox-esr \
-   libcos4-1 \
-   omniidl omniidl-python omniorb-idl omniorb-nameserver python-omniorb python-omniorb-omg \
-   libqwt-qt5-6 \
-   libqt5xml5 libqt5test5 libqt5sensors5 libqt5positioning5 libqt5multimediawidgets5 libqt5webengine5 libqt5webenginewidgets5 \
-   libboost-filesystem1.62.0 libboost-regex1.62.0 libboost-signals1.62.0 libboost-thread1.62.0 libboost-date-time1.62.0 libboost-chrono1.62.0 libboost-atomic1.62.0 \
-   libpython2.7 \
-   python-sip python-pyqt5 \
-   python-numpy python-scipy python-matplotlib \
-   graphviz \
-   valgrind \
-   python-psutil python-memory-profiler \
-   yamllint python-yaml
-
-# install specific packages required
-apt-get -y install \
-   libhdf5-1.8-mpi.dev libnetcdf-dev libcgns-dev libmed-dev libmedc-dev libmedimport-dev libmed-tools \
-   libgl2ps-dev libfreeimage-dev \
-   libqt5x11extras5 \
-   python-cycler python-sphinx sphinx-intl python-sphinxcontrib-napoleon \
-   python-subprocess32 python-functools32
 
 ## Installing VirtualGl for noVNC
+#wget https://sourceforge.net/projects/virtualgl/files/2.6/virtualgl_2.6_amd64.deb/download -O /tmp/virtualgl_2.6_amd64.deb
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
 rm -f /tmp/virtualgl_2.5.2_amd64.deb
+#dpkg -i /tmp/virtualgl_2.6_amd64.deb
+#rm -f /tmp/virtualgl_2.6_amd64.deb
 
 
 # To use on Cluster with InfinyBand and Slurm
@@ -150,11 +124,6 @@ apt-get -y install dapl2-utils \
 # Cleanup
 apt -y clean
 apt -y autoclean
-
-# Installing Salome
-cd /opt && tar zxvf /opt/SALOME-8.5.0-MPI-DB9.5.tgz
-rm /opt/SALOME-8.5.0-MPI-DB9.5.tgz
-find /opt/SALOME-8.5.0-MPI-DB9.5 -name \*.py[co] | xargs -r rm
 
 # Try to cleanup more
 for package in $(dpkg -l | egrep ".*\-dev\b" | awk '{print $2}'); do \

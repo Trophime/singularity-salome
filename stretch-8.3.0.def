@@ -12,7 +12,7 @@ List availailable apps
     $ singularity apps <image-name>
 
 Run salome in TUI mode:
-    $ singularity run   <image-name> salome -t scrypt.py args:....
+    $ singularity run   <image-name> -t scrypt.py args:....
 
 Run salome in GUI mode:
     $ singularity run --nv --app salome  <image-name>
@@ -40,13 +40,20 @@ exec salome "$@"
         exit 1
     fi
     # prepare for MeshGems
-    mkdir -p $SINGULARITY_ROOTFS/opt
     mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
-    mkdir -p $SINGULARITY_ROOTFS/opt
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/opt/
+    mkdir -p $SINGULARITY_ROOTFS/tmp    
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-DB9.5.tgz $SINGULARITY_ROOTFS/tmp/
+    cp /home/LNCMI-G/trophime/Salome_Packages/install-SALOME-8.3.0-MPI-DB9.5.sh $SINGULARITY_ROOTFS/tmp/
     mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test
-    for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/*py); do
+    for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/scripts/*py); do
        cp $script  $SINGULARITY_ROOTFS/usr/local/share/salome/test
+    done
+    mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    for cfg in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*yaml); do
+       cp $cfg  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    done
+    for dat in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*dat); do
+       cp $dat  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
     done
 exit 0
 
@@ -60,6 +67,14 @@ export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
 
 export FEELPP_REPOSITORY=/feel
 export HIFIMAGNET=/opt/SALOME-8.3.0-MPI-DB9.5/BINARIES-DB9.5/HIFIMAGNET/bin/salome/
+
+# Defining alias for security
+alias ls='ls --color=auto'
+alias ll='ls -ls'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias grep='grep --color'
 
 # Add support for openmp
 export OMP_NUM_THREADS=1
@@ -75,63 +90,23 @@ Version 1.0
 
 %post
 
-echo "alias ls='ls --color=auto'" >> /etc/bash.bashrc
-echo "alias ll='ls -ls'" >> /etc/bash.bashrc
-echo "alias cp='cp -i'" >> /etc/bash.bashrc
-echo "alias mv='mv -i'" >> /etc/bash.bashrc
-echo "alias rm='rm -i'" >> /etc/bash.bashrc
-echo "alias grep='grep --color'" >> /etc/bash.bashrc
-
 mkdir -p /feel
 mkdir -p /scratch /tmp
 
-# Add contrib and non-free section (should check if updates and backports exist)
-echo "deb http://ftp.debian.org/debian stable-updates main" >> /etc/apt/sources.list
-echo "deb http://ftp.debian.org/debian stable-backports main" >> /etc/apt/sources.list
-sed -i'.bak' 's/$/ contrib non-free/' /etc/apt/sources.list
+# Installing Salome
+cd /tmp && sh ./install-SALOME-8.3.0-MPI-DB9.5.sh
+rm /tmp/install-SALOME-8.3.0-MPI-DB9.5.sh
+find /opt/SALOME-8.3.0-MPI-DB9.5 -name \*.py[co] | xargs -r rm
 
-# Add Debian/Ubuntu Lncmi repository (should check if depot is accessible)
-apt-get update
-apt-get -y install gnupg2  
-gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv 535D3508
-gpg --export --armor 535D3508 | apt-key add -
-echo "deb http://euler/~trophime/debian/ stretch main" >  /etc/apt/sources.list.d/lncmi.list
-
-apt-get update
-apt-get -y upgrade
-apt-get -y install emacs vim nano \
-   bash-completion wget curl less \
-   openssh-client net-tools
-
-# install default packages
-apt-get install -y \
-   firefox-esr \
-   libcos4-1 \
-   omniidl omniidl-python omniorb-idl omniorb-nameserver python-omniorb python-omniorb-omg \
-   libqwt-qt5-6 \
-   libqt5xml5 libqt5test5 libqt5sensors5 libqt5positioning5 libqt5multimediawidgets5 libqt5webengine5 libqt5webenginewidgets5 \
-   libboost-filesystem1.62.0 libboost-regex1.62.0 libboost-signals1.62.0 libboost-thread1.62.0 libboost-date-time1.62.0 libboost-chrono1.62.0 libboost-atomic1.62.0 \
-   libpython2.7 \
-   python-sip python-pyqt5 \
-   python-numpy python-scipy python-matplotlib \
-   graphviz \
-   valgrind \
-   python-psutil python-memory-profiler \
-   yamllint python-yaml
-
-# install specific packages required
-apt-get -y install \
-   gmsh-tetgen \
-   paraview-python \
-   netgen libnglib-5.3.1 \
-   gmsh-tetgen libpastix-dev \
-   libopencascade-visualization-dev libopencascade-ocaf-dev
 
 ## Installing VirtualGl for noVNC
+#wget https://sourceforge.net/projects/virtualgl/files/2.6/virtualgl_2.6_amd64.deb/download -O /tmp/virtualgl_2.6_amd64.deb
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
 apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
 dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
 rm -f /tmp/virtualgl_2.5.2_amd64.deb
+#dpkg -i /tmp/virtualgl_2.6_amd64.deb
+#rm -f /tmp/virtualgl_2.6_amd64.deb
 
 
 # To use on Cluster with InfinyBand and Slurm
@@ -152,15 +127,17 @@ apt-get -y install dapl2-utils \
 apt -y clean
 apt -y autoclean
 
-# Installing Salome
-cd /opt && tar zxvf /opt/SALOME-8.3.0-MPI-DB9.5.tgz
-rm /opt/SALOME-8.3.0-MPI-DB9.5.tgz
-find /opt/SALOME-8.3.0-MPI-DB9.5 -name \*.py[co] | xargs -r rm
+# # Try to cleanup more (remove needed libopencascade-ocaf ??)
+# for package in $(dpkg -l | egrep ".*\-dev\b" | awk '{print $2}'); do \
+#      echo "Remove $package"; \
+#      apt -y remove $package; \
+# done
 
 %test
 for script in $(ls /usr/local/share/salome/test/*py); do
   echo -n "Running $script"
-  status=salome -t $script > /dev/null
+  /opt/SALOME-8.3.0-MPI-DB9.5/salome -t $script > /dev/null
+  status=$?
   if [ "x$status" = "0" ]; then
      echo "\t FAILED"
   else
