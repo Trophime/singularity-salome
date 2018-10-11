@@ -124,12 +124,16 @@ apt -y autoclean
 %test
 for script in $(ls /usr/local/share/salome/test/*py); do
   echo -n "Running $script"
-  status=salome -t $script > /dev/null
+  export LD_LIBRARY_PATH=/usr/lib/paraview:$LD_LIBRARY_PATH
+  export PATH=/opt/SALOME-8.4.0-MPI-DB9.5:$PATH
+  salome -t $script > /dev/null 2>&1
+  status=$?
   if [ "x$status" = "0" ]; then
-     echo "\t FAILED"
+     echo -en "[\033[32m  OK  \033[39m]"
   else
-     echo "\t PASS"
+     echo -en "[\033[32m  OK  \033[39m]"
   fi   
+  echo
 done
 
 %apprun salome
