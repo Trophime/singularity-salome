@@ -1,0 +1,154 @@
+Bootstrap: docker
+From: trophime/mesa-demos:18.2.4
+
+%help
+USAGE: salome [-h]
+
+NOTES:
+1) This image is read-only!
+
+EXAMPLES:
+List availailable apps
+    $ singularity apps <image-name>
+
+Run salome in TUI mode:
+    $ singularity run   <image-name> -t scrypt.py args:....
+
+Run salome in GUI mode:
+    $ singularity run --nv --app salome  <image-name>
+
+Run salome in GUI mode on NoVNC/Virtual :
+    $ singularity run --nv --app vgl_salome  <image-name> ...
+
+Run salome in TUI mode for Hifimagnet :
+    $ singularity run --app hifimagnet-tui  <image-name> ...
+
+Run salome in GUI mode for Hifimagnet :
+    $ singularity run --nv --app hifimagnet_gui  <image-name> ...
+
+To add support for MeshGems:
+    $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/DLim  [--app <app>] <image-app>
+where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
+
+%runscript
+exec salome "$@"
+
+%setup
+    echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
+    if [ ! -x "$SINGULARITY_ROOTFS/bin/sh" ]; then
+        echo "Hrmm, this container does not have /bin/sh installed..."
+        exit 1
+    fi
+    # prepare for MeshGems
+    mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
+    mkdir -p $SINGULARITY_ROOTFS/tmp    
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-8.3.0-MPI-UB16.04.tgz $SINGULARITY_ROOTFS/tmp/
+    cp /home/LNCMI-G/trophime/github/hifimagnet/singularity/salome/install-SALOME-8.3.0-MPI-UB16.04.sh $SINGULARITY_ROOTFS/tmp/
+    mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test
+    for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/scripts/*py); do
+       cp $script  $SINGULARITY_ROOTFS/usr/local/share/salome/test
+    done
+    mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    for cfg in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*yaml); do
+       cp $cfg  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    done
+    for dat in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*dat); do
+       cp $dat  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    done
+exit 0
+
+
+%environment
+export PATH=/opt/SALOME-8.3.0-MPI-UB16.04:$PATH
+
+export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
+
+export FEELPP_REPOSITORY=/feel
+export HIFIMAGNET=/opt/SALOME-8.3.0-MPI-UB16.04/BINARIES-UB16.04/HIFIMAGNET/bin/salome/
+
+# Defining alias for security
+alias ls='ls --color=auto'
+alias ll='ls -ls'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias grep='grep --color'
+
+# Add support for openmp
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+
+export LANG=C
+
+%labels
+AUTHOR christophe.trophime@lncmi.cnrs.fr
+Maintainer: Christophe Trophime
+Maintainer_email: christophe.trophime@lncmi.cnrs.fr
+Version 1.0
+
+%post
+
+mkdir -p /feel
+mkdir -p /scratch /tmp
+
+# Installing Salome
+cd /tmp && sh ./install-SALOME-8.3.0-MPI-UB16.04.sh
+rm /tmp/install-SALOME-8.3.0-MPI-UB16.04.sh
+find /opt/SALOME-8.3.0-MPI-U16.04 -name \*.py[co] | xargs -r rm
+
+
+## Installing VirtualGl for noVNC
+wget https://sourceforge.net/projects/virtualgl/files/2.6/virtualgl_2.6_amd64.deb/download -O /tmp/virtualgl_2.6_amd64.deb
+#wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O /tmp/virtualgl_2.5.2_amd64.deb
+apt-get -y install x11-apps libxv1
+dpkg -i /tmp/virtualgl_2.6_amd64.deb
+#dpkg -i /tmp/virtualgl_2.5.2_amd64.deb
+rm -f /tmp/virtualgl_2.6_amd64.deb
+#rm -f /tmp/virtualgl_2.5-2_amd64.deb
+
+
+# To use on Cluster with InfinyBand and Slurm
+apt-get -y install dapl2-utils \
+                   libdapl2 \
+                   libibverbs1 \
+                   librdmacm1 \
+                   libcxgb3-1 \
+                   libipathverbs1 \
+                   libmlx4-1 \
+                   libmlx5-1 \
+                   libmthca1 \
+                   libnes1 \
+                   libpmi0 \
+                   libslurm29
+
+# Cleanup
+apt -y clean
+apt -y autoclean
+
+# # Try to cleanup more
+# for package in $(dpkg -l | egrep ".*\-dev\b" | awk '{print $2}'); do \
+#      echo "Remove $package"; \
+#      apt -y remove $package; \
+# done
+
+%test
+for script in $(ls /usr/local/share/salome/test/*py); do
+  echo -n "Running $script"
+  export LD_LIBRARY_PATH=/usr/lib/paraview:$LD_LIBRARY_PATH
+  export PATH=/opt/SALOME-8.6.0-MPI-UB16.04:$PATH
+  salome -t $script > /dev/null 2>&1
+  status=$?
+  if [ "x$status" = "0" ]; then
+     echo -en "[\033[32m  OK  \033[39m]"
+  else
+     echo -en "[\033[32m  OK  \033[39m]"
+  fi   
+  echo
+done
+
+%apprun salome
+echo "Need to pass --nv options to singularity"
+salome "$@"
+
+%apprun vgl_salome
+vglrun salome "$@"
