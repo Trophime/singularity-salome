@@ -13,9 +13,9 @@ axi: !<ModelAxi>
   name: "HL-31.d"
   h: 95
   turns:
-    - 10
+    - 2
   pitch:
-    - 19
+    - 95
 m3d: !<Model3D>
   cad: "HL-31-206MC"
   with_shapes: false

@@ -12,9 +12,9 @@ axi: !<ModelAxi>
   name: "HL-31.d"
   h: 109
   pitch:
-    - 21.8
+    - 109.
   turns:
-    - 10
+    - 2
 cutwidth: 0.26
 m3d: !<Model3D>
   cad: "HL-31-008MC"
