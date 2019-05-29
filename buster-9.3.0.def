@@ -1,0 +1,185 @@
+Bootstrap: docker
+From: debian:buster
+
+%help
+USAGE: salome [-h]
+
+NOTES:
+1) This image is read-only!
+
+EXAMPLES:
+List availailable apps
+    $ singularity apps <image-name>
+
+Run salome in TUI mode:
+    $ singularity run   <image-name> -t scrypt.py args:....
+
+Run salome in GUI mode:
+    $ singularity run --nv --app salome  <image-name>
+
+Run salome in GUI mode on NoVNC/Virtual :
+    $ singularity run --nv --app vgl_salome  <image-name> ...
+
+Run salome in TUI mode for Hifimagnet :
+    $ singularity run --app hifimagnet-tui  <image-name> ...
+
+Run salome in GUI mode for Hifimagnet :
+    $ singularity run --nv --app hifimagnet_gui  <image-name> ...
+
+To add support for MeshGems:
+    $ singularity run --nv -B ${MESHGEMS_LICDIR}:/opt/DISTENE/DLim  [--app <app>] <image-app>
+where MESHGEMS_LICDIR points to the directory holding a valid MeshGems license
+
+%runscript
+exec salome "$@"
+
+%setup
+    echo "Looking in directory '$SINGULARITY_ROOTFS' for /bin/sh"
+    if [ ! -x "$SINGULARITY_ROOTFS/bin/sh" ]; then
+        echo "Hrmm, this container does not have /bin/sh installed..."
+        exit 1
+    fi
+    # prepare for MeshGems
+    mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
+    mkdir -p $SINGULARITY_ROOTFS/tmp    
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-9.3.0-MPI-DB10.tgz $SINGULARITY_ROOTFS/tmp/
+    cp /home/LNCMI-G/trophime/Salome_Packages/install-SALOME-9.3.0-MPI-DB10.sh $SINGULARITY_ROOTFS/tmp/
+    # cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-9.3.0-DBtesting-SRC.tgz $SINGULARITY_ROOTFS/tmp/SALOME-9.3.0-MPI-DBtesting.tgz
+    # cp /home/LNCMI-G/trophime/Salome_Packages/install-SALOME-9.3.0-MPI-DBtesting.sh $SINGULARITY_ROOTFS/tmp/
+    mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test
+    for script in $(ls /home/LNCMI-G/trophime/Salome_Tests/scripts/*py); do
+       cp $script  $SINGULARITY_ROOTFS/usr/local/share/salome/test
+    done
+    mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    for cfg in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*yaml); do
+       cp $cfg  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    done
+    for dat in $(ls /home/LNCMI-G/trophime/Salome_Tests/H1H4/*dat); do
+       cp $dat  $SINGULARITY_ROOTFS/usr/local/share/salome/H1H4
+    done
+exit 0
+
+
+%environment
+#export PATH=/opt/SALOME-9.3.0-DBtesting-SRC:$PATH
+export PATH=/opt/SALOME-9.3.0-DB10:$PATH
+
+export DISTENE_LICENSE_FILE=/opt/DISTENE/DLim/dlim8.key
+
+export FEELPP_REPOSITORY=/feel
+#export HIFIMAGNET=/opt/SALOME-9.3.0-DBtesting/BINARIES-DBtesting-SRC/HIFIMAGNET/bin/salome/
+export HIFIMAGNET=/opt/SALOME-9.3.0-DB10/BINARIES-DB10/HIFIMAGNET/bin/salome/
+
+# Defining alias for security
+alias ls='ls --color=auto'
+alias ll='ls -ls'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias grep='grep --color'
+
+# # Add support for openmp
+# export OMP_NUM_THREADS=1
+# export OPENBLAS_NUM_THREADS=1
+
+export LANG=C
+
+%labels
+AUTHOR christophe.trophime@lncmi.cnrs.fr
+Maintainer: Christophe Trophime
+Maintainer_email: christophe.trophime@lncmi.cnrs.fr
+Version 1.0
+
+%post
+
+mkdir -p /feel
+mkdir -p /scratch /tmp
+
+# Installing Salome
+cd /tmp && sh ./install-SALOME-9.3.0-MPI-DB10.sh
+rm /tmp/install-SALOME-9.3.0-MPI-DB10.sh
+rm /tmp/SALOME-9.3.0-MPI-DB10.tgz
+find /opt/SALOME-9.3.0-DB10 -name \*.py[co] | xargs -r rm
+
+# Patch installation
+find /opt/SALOME-9.3.0-DB10 -name \*.cmake | xargs perl -pi -e "s|/home/feelpp/salome/|/opt/SALOME-9.3.0-DB10/|g"
+find /opt/SALOME-9.3.0-DB10 -name \*.cmake | xargs perl -pi -e "s|/INSTALL/|/BINARIES-DB10/|g"
+find /opt/SALOME-9.3.0-DB10 -name \*.py | xargs perl -pi -e "s|/home/feelpp/salome/SALOME-9.3.0-DB10/SOURCES|/opt/SALOME-9.3.0-DB10/SOURCES|g"
+
+perl -pi -e "s|\[ParaView\]|\[ParaView\]\\n    context.addToLdLibraryPath(r\"/usr/lib/paraview\")|" /opt/SALOME-9.3.0-DB10/salome
+perl -pi -e "s|\[qt\]|\[qt\]\\n    context.setVariable(r\"QT5_ROOT_DIR\", r\"/usr/lib/x86_64-linux-gnu/qt5\", overwrite=True)|" /opt/SALOME-9.3.0-DB10/salome
+
+# to get salome test working
+apt-get -y install cmake
+
+## Installing VirtualGl for noVNC
+wget https://sourceforge.net/projects/virtualgl/files/2.6/virtualgl_2.6_amd64.deb/download -O /tmp/virtualgl_2.6_amd64.deb
+apt-get -y install mesa-utils mesa-utils-extra x11-apps libxv1
+dpkg -i /tmp/virtualgl_2.6_amd64.deb
+rm -f /tmp/virtualgl_2.6_amd64.deb
+
+
+# To use on Cluster with InfinyBand and Slurm
+apt-get -y install dapl2-utils \
+                   libdapl2 \
+                   libibverbs1 \
+                   librdmacm1 \
+                   libcxgb3-1 \
+                   libipathverbs1 \
+                   libmlx4-1 \
+                   libmlx5-1 \
+                   libmthca1 \
+                   libnes1 \
+                   libpmi0 \
+                   libslurm33
+
+# Cleanup
+apt -y clean
+apt -y autoclean
+
+# # Try to cleanup more
+# for package in $(dpkg -l | egrep ".*\-dev\b" | awk '{print $2}'); do \
+#      echo "Remove $package"; \
+#      apt -y remove $package; \
+# done
+
+# create custom motd
+# Install figlet!
+apt-get install -y figlet
+
+cat > /.singularity.d/env/99-motd.sh <<EOF   
+case \$0 in
+    /.singularity.d/actions/shell)
+        figlet Salome 9.3.0
+        echo
+        echo "Hello \$USER from shell" ;;
+    /.singularity.d/actions/exec)
+        echo "Hello \$USER from exec" ;;
+    /.singularity.d/actions/run)
+        echo "Hello \$USER from run" ;;
+    /.singularity.d/actions/test)
+        echo "Hello \$USER from test" ;;
+esac
+EOF
+
+%test
+for script in $(ls /usr/local/share/salome/test/*py); do
+  echo -n "Running $script"
+  export LD_LIBRARY_PATH=/usr/lib/paraview:$LD_LIBRARY_PATH
+  export PATH=/opt/SALOME-9.3.0-MPI-DB9.5:$PATH
+  salome -t $script > /dev/null 2>&1
+  status=$?
+  if [ "x$status" = "0" ]; then
+     echo -en "[\033[32m  OK  \033[39m]"
+  else
+     echo -en "[\033[32m  OK  \033[39m]"
+  fi   
+  echo
+done
+
+%apprun salome
+echo "Need to pass --nv options to singularity"
+salome "$@"
+
+%apprun vgl_salome
+vglrun salome "$@"
