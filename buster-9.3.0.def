@@ -109,6 +109,10 @@ find /opt/SALOME-9.3.0-DB10 -name \*.py | xargs perl -pi -e "s|/home/feelpp/salo
 perl -pi -e "s|\[ParaView\]|\[ParaView\]\\n    context.addToLdLibraryPath(r\"/usr/lib/paraview\")|" /opt/SALOME-9.3.0-DB10/salome
 perl -pi -e "s|\[qt\]|\[qt\]\\n    context.setVariable(r\"QT5_ROOT_DIR\", r\"/usr/lib/x86_64-linux-gnu/qt5\", overwrite=True)|" /opt/SALOME-9.3.0-DB10/salome
 
+# To get HifiMagnet Salome plugin working
+apt-get -y install python3-pint python3-freesteam python3-yaml yamllint
+apt-get -y install libpastix-dev
+
 # to get salome test working
 apt-get -y install cmake
 

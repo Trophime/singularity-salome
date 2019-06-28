@@ -77,3 +77,18 @@ singularity run [--nv] "./salome-$VERSION-$DIST-$TAG.simg"
 * generate def file from requested version and os
 * eventually build requested version is not available
 * is graphic driver really needed with latest singularity version?
+
+* build for previous singularity version
+
+```
+docker run --privileged -t --rm \
+ -v $PWD:/tmp/salome \
+ -v /home/LNCMI-G/trophime/Salome_Packages/:/home/LNCMI-G/trophime/Salome_Packages/ \
+ singularityware/singularity:2.4  build [-w] /tmp/salome/salome-9.3.0-buster.simg /tmp/salome/buster-9.3.0.def
+```
+
+*
+
+```
+singularity run shub://sregistry.srv.cesga.es/mso4sc/sregistry:latest --quiet push --name hifimagnet/salome --tag 9.3.0 salome-9.3.0-buster.simg
+```
