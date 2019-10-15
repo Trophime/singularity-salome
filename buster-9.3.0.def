@@ -42,8 +42,8 @@ exec salome "$@"
     # prepare for MeshGems
     mkdir -p $SINGULARITY_ROOTFS/opt/DISTENE/DLim
     mkdir -p $SINGULARITY_ROOTFS/tmp    
-    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-9.3.0-MPI-DB10.tgz $SINGULARITY_ROOTFS/tmp/
-    cp /home/LNCMI-G/trophime/Salome_Packages/install-SALOME-9.3.0-MPI-DB10.sh $SINGULARITY_ROOTFS/tmp/
+    cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-9.3.0-DB10.tgz $SINGULARITY_ROOTFS/tmp/
+    cp /home/LNCMI-G/trophime/Salome_Packages/install-SALOME-9.3.0-DB10.sh $SINGULARITY_ROOTFS/tmp/
     # cp /home/LNCMI-G/trophime/Salome_Packages/SALOME-9.3.0-DBtesting-SRC.tgz $SINGULARITY_ROOTFS/tmp/SALOME-9.3.0-MPI-DBtesting.tgz
     # cp /home/LNCMI-G/trophime/Salome_Packages/install-SALOME-9.3.0-MPI-DBtesting.sh $SINGULARITY_ROOTFS/tmp/
     mkdir -p $SINGULARITY_ROOTFS/usr/local/share/salome/test
@@ -96,9 +96,9 @@ mkdir -p /feel
 mkdir -p /scratch /tmp
 
 # Installing Salome
-cd /tmp && sh ./install-SALOME-9.3.0-MPI-DB10.sh
-rm /tmp/install-SALOME-9.3.0-MPI-DB10.sh
-rm /tmp/SALOME-9.3.0-MPI-DB10.tgz
+cd /tmp && sh ./install-SALOME-9.3.0-DB10.sh
+rm /tmp/install-SALOME-9.3.0-DB10.sh
+rm /tmp/SALOME-9.3.0-DB10.tgz
 find /opt/SALOME-9.3.0-DB10 -name \*.py[co] | xargs -r rm
 
 # Patch installation
@@ -110,8 +110,11 @@ perl -pi -e "s|\[ParaView\]|\[ParaView\]\\n    context.addToLdLibraryPath(r\"/us
 perl -pi -e "s|\[qt\]|\[qt\]\\n    context.setVariable(r\"QT5_ROOT_DIR\", r\"/usr/lib/x86_64-linux-gnu/qt5\", overwrite=True)|" /opt/SALOME-9.3.0-DB10/salome
 
 # To get HifiMagnet Salome plugin working
+apt-get -y install net-tools
 apt-get -y install python3-pint python3-freesteam python3-yaml yamllint
 apt-get -y install libpastix-dev
+apt-get -y install libann0 libmetis5
+apt-get -y install libcgns-dev
 
 # to get salome test working
 apt-get -y install cmake
