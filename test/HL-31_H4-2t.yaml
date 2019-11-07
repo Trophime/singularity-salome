@@ -15,7 +15,7 @@ axi: !<ModelAxi>
     - 109.
   turns:
     - 2
-cutwidth: 0.26
+cutwidth: 0.6
 m3d: !<Model3D>
   cad: "HL-31-008MC"
   with_shapes: false
